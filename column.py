@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 class Material:
     """
     Data class to store material properties required for structural analysis.
@@ -19,7 +18,6 @@ class Material:
         
 import numpy as np
 from numpy import sin, cos
-=======
 def ColumnBuckling(R,t,L,E):
     A = \pi * R^2
     I = \pi * R^3 * t
@@ -42,4 +40,3 @@ def ShellBuckling(t1,p,L,E,nu):
   #spits out value maggiore di  allroa fails by buckling
   # quindi due funzioni per buckling una per sheet e una per 
 print(colonna())
->>>>>>> Stashed changes
