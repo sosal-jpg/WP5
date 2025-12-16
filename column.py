@@ -20,7 +20,7 @@ import numpy as np
 from numpy import sin, cos
 from scipy.optimize import minimize, NonlinearConstraint
 def ColumnBuckling(R,t,L,E):
-    A = np.pi * R**2
+    A = 2 * np.pi * R * t
     I = np.pi * R**3 * t
     Sigma_cb= np.pi**2 * E * I/ (A * L**2)
     return Sigma_cb
