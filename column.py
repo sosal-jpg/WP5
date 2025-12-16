@@ -39,4 +39,4 @@ def ShellBuckling(R,t1,p,L,E,nu):
   #poi funzione per buckling compute the critical stress for this; poi fai sigma_max/ sigma_critical di buckling, ovviamente se questa 
   #spits out value maggiore di 1 allroa fails by buckling :
   # quindi due funzioni per buckling una per sheet e una per 
-print(colonna())
+
