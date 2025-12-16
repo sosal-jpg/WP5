@@ -18,6 +18,7 @@ class Material:
         
 import numpy as np
 from numpy import sin, cos
+from scipy.optimize import minimize, NonlinearConstraint
 def ColumnBuckling(R,t,L,E):
     A = np.pi * R**2
     I = np.pi * R**3 * t
@@ -39,4 +40,17 @@ def ShellBuckling(R,t1,p,L,E,nu):
   #poi funzione per buckling compute the critical stress for this; poi fai sigma_max/ sigma_critical di buckling, ovviamente se questa 
   #spits out value maggiore di 1 allroa fails by buckling :
   # quindi due funzioni per buckling una per sheet e una per 
-print(colonna())
+
+bounds = [
+    (0.001, np.inf),  # t1: Flange thickness
+    (0.001, np.inf),  # D1: Flange hole diameter
+    (1.01, 5.0000),  # w/D1: Width ratio
+    (0.000, np.inf),  # L_: Reduced Length param
+    (0.000, np.inf),  # v_: Reduced Height param
+    (0.001, np.inf),  # D2: Fastener diameter
+    (0.001, np.inf),  # t2: Backplate thickness
+    (0.001, np.inf)  # h:  Flange separation distance
+]
+constraints.append(NonlinearConstraint(constraint_x, lb=constraint_bounds_specific[0][i],
+                                                   ub=constraint_bounds_specific[1][i]))
+minimize(mass_x, x0=x0, constraints=constraints, bounds=bounds, method='SLSQP', options=options)
