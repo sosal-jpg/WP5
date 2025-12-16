@@ -1,4 +1,3 @@
-
 class Material:
     """
     Data class to store material properties required for structural analysis.
@@ -19,8 +18,6 @@ class Material:
         
 import numpy as np
 from numpy import sin, cos
-
-
 def ColumnBuckling(R,t,L,E):
     A = np.pi * R**2
     I = np.pi * R**3 * t
@@ -42,5 +39,4 @@ def ShellBuckling(R,t1,p,L,E,nu):
   #poi funzione per buckling compute the critical stress for this; poi fai sigma_max/ sigma_critical di buckling, ovviamente se questa 
   #spits out value maggiore di 1 allroa fails by buckling :
   # quindi due funzioni per buckling una per sheet e una per 
-
-
+print(colonna())
