@@ -41,7 +41,6 @@ def ShellBuckling(R,t1,p,L,E,nu):
   #spits out value maggiore di 1 allroa fails by buckling :
   # quindi due funzioni per buckling una per sheet e una per 
 
-<<<<<<< HEAD
 bounds = [
     (0.001, np.inf),  # t1: Flange thickness
     (0.001, np.inf),  # D1: Flange hole diameter
@@ -55,5 +54,3 @@ bounds = [
 constraints.append(NonlinearConstraint(constraint_x, lb=constraint_bounds_specific[0][i],
                                                    ub=constraint_bounds_specific[1][i]))
 minimize(mass_x, x0=x0, constraints=constraints, bounds=bounds, method='SLSQP', options=options)
-=======
->>>>>>> 69f79713bcdb181935c7486a01327afae97391fc
