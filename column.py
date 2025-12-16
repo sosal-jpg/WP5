@@ -1,4 +1,4 @@
-<<<<<<< Updated upstream
+
 class Material:
     """
     Data class to store material properties required for structural analysis.
@@ -19,19 +19,20 @@ class Material:
         
 import numpy as np
 from numpy import sin, cos
-=======
+
+
 def ColumnBuckling(R,t,L,E):
-    A = \pi * R^2
-    I = \pi * R^3 * t
-    Sigma_cb= \pi^2 * E * I/ (A * L^2)
+    A = np.pi * R**2
+    I = np.pi * R**3 * t
+    Sigma_cb= np.pi**2 * E * I/ (A * L**2)
     return Sigma_cb
 
 
-def ShellBuckling(t1,p,L,E,nu):
-    Q= p*R^2/(E*t1^2)
-    lamda = np.sqrt((12* L^4 * (1-nu^2))/(\pi^4 * R^2 * t1^2) )
-    k = lamda + 12* L^4 * (1-nu^2) / ( \pi^4 * R^2 * t1^2 * lamda)
-    Sigma_sb= (1.983 - 0.983* exp(-23.14*Q))*k*\pi^2*E*t1^2/(12*(1-nu^2)*L^2)
+def ShellBuckling(R,t1,p,L,E,nu):
+    Q= p*R**2/(E*t1**2)
+    lamda = np.sqrt((12* L**4 * (1-nu**2))/(np.pi**4 * R**2 * t1**2) )
+    k = lamda + 12* L**4 * (1-nu**2) / ( np.pi**4 * R**2 * t1**2 * lamda)
+    Sigma_sb= (1.983 - 0.983*np.exp(-23.14*Q))*k*np.pi**2*E*t1**2/(12*(1-nu**2)*L**2)
     return Sigma_sb
 
 
@@ -39,7 +40,7 @@ def ShellBuckling(t1,p,L,E,nu):
   #output è total or cricical stress  
   #maximum stress che deriva da carichi effettivi quindi loads e local pressure (stress_max)
   #poi funzione per buckling compute the critical stress for this; poi fai sigma_max/ sigma_critical di buckling, ovviamente se questa 
-  #spits out value maggiore di  allroa fails by buckling
+  #spits out value maggiore di 1 allroa fails by buckling :
   # quindi due funzioni per buckling una per sheet e una per 
-print(colonna())
->>>>>>> Stashed changes
+
+
