@@ -9,29 +9,48 @@ class Material:
         rho (float): Density [kg/m^3].
     """
 
-    def __init__(self, Name=None, E=0, y_stress=0, alpha=1, rho=1):
+    def __init__(self, Name=None, E=0, y_stress=0, alpha=1, rho=1,nu=0.5):
         self.Name = Name
         self.E = E
         self.y_stress = y_stress
         self.alpha = alpha
         self.rho = rho
+        self.nu = nu
         
 import numpy as np
 from numpy import sin, cos
 from scipy.optimize import minimize, NonlinearConstraint
-def ColumnBuckling(R,t,L,E):
-    A = 2 * np.pi * R * t
-    I = np.pi * R**3 * t
-    Sigma_cb= np.pi**2 * E * I/ (A * L**2)
-    return Sigma_cb
 
-
-def ShellBuckling(R,t1,p,L,E,nu):
-    Q= p*R**2/(E*t1**2)
-    lamda = np.sqrt((12* L**4 * (1-nu**2))/(np.pi**4 * R**2 * t1**2) )
-    k = lamda + 12* L**4 * (1-nu**2) / ( np.pi**4 * R**2 * t1**2 * lamda)
-    Sigma_sb= (1.983 - 0.983*np.exp(-23.14*Q))*k*np.pi**2*E*t1**2/(12*(1-nu**2)*L**2)
-    return Sigma_sb
+bounds = [
+    (0.00, 100.00),  # R
+    (0.00, 0.3),  # t1
+    (1.01, 5.0000),  # L
+]
+options = {"maxiter": 100, }
+mats_col=[]
+mats_fast=[]
+for mat_col in mats_col:
+    rho_col=mat_col.rho
+    def ColumnBuckling(x):
+        R,t1,L=x
+        A = 2 * np.pi * R * t1
+        I = np.pi * R**3 * t1
+        Sigma_cb= np.pi**2 * mat_col.E * I/ (A * L**2)
+        return Sigma_cb
+    def ShellBuckling(x):
+        R,t1,L=x
+        Q= p*R**2/(mat_col.E*t1**2)
+        lamda = np.sqrt((12* L**4 * (1-mat_col.nu**2))/(np.pi**4 * R**2 * t1**2) )
+        k = lamda + 12* L**4 * (1-mat_col.nu**2) / ( np.pi**4 * R**2 * t1**2 * lamda)
+        Sigma_sb= (1.983 - 0.983*np.exp(-23.14*Q))*k*np.pi**2*mat_col.E*t1**2/(12*(1-mat_col.nu**2)*L**2)
+        return Sigma_sb
+    def mass(x):
+        R,t1,L=x
+        return rho_col*(np.pi*R*t1*2*L)
+    constraints=[]
+    constraints.append(NonlinearConstraint(ColumnBuckling, lb=0,ub=mat_col.y_stress))
+    x0=[1.2,0.003,3]
+    minimize(mass, x0=x0, constraints=constraints, bounds=bounds, method='SLSQP', options=options)
 
 
 
@@ -41,16 +60,4 @@ def ShellBuckling(R,t1,p,L,E,nu):
   #spits out value maggiore di 1 allroa fails by buckling :
   # quindi due funzioni per buckling una per sheet e una per 
 
-bounds = [
-    (0.001, np.inf),  # t1: Flange thickness
-    (0.001, np.inf),  # D1: Flange hole diameter
-    (1.01, 5.0000),  # w/D1: Width ratio
-    (0.000, np.inf),  # L_: Reduced Length param
-    (0.000, np.inf),  # v_: Reduced Height param
-    (0.001, np.inf),  # D2: Fastener diameter
-    (0.001, np.inf),  # t2: Backplate thickness
-    (0.001, np.inf)  # h:  Flange separation distance
-]
-constraints.append(NonlinearConstraint(constraint_x, lb=constraint_bounds_specific[0][i],
-                                                   ub=constraint_bounds_specific[1][i]))
-minimize(mass_x, x0=x0, constraints=constraints, bounds=bounds, method='SLSQP', options=options)
+
