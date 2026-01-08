@@ -54,7 +54,7 @@ mat_min=None
 p_min=None
 for mat_col in mats_col:
     for p in [0,p_given]:
-        rho_col=mat_col.rho
+        t1=0.001
         def choose_p(func, p):
             modified=lambda x: func(x,p)
             return modified
@@ -99,13 +99,12 @@ for mat_col in mats_col:
             k = lamda + 12* L**4 * (1-mat_col.nu**2) / ( pi**4 * R**2 * t1**2 * lamda)
             Sigma_sb= (1.983 - 0.983*np.exp(-23.14*Q))*k*pi**2*mat_col.E*t1**2/(12*(1-mat_col.nu**2)*L**2)
             return MaxStress_compr(t1,p)/Sigma_sb
-        def mass(x):
-            t1=x
+        def mass(t1):
             t1*=0.001
             return rho_col*(2*pi*R*t1*L)
     
         while True:
-            
+            t1+=0.001
         constraints=[]
         constraints.append(NonlinearConstraint(choose_p(ColumnBuckling,p), lb=0,ub=1))
         constraints.append(NonlinearConstraint(choose_p(ShellBuckling,p), lb=0,ub=1))
