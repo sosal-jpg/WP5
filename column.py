@@ -25,12 +25,12 @@ g=9.8
 L_tanks=1.8
 m_tanks=210
 L=L_tanks
-R=0.6
+R=0.6/2
 bounds = [
     (1, 30),  # t1
 ]
 options = {"maxiter": 1000, }
-mats_col=[
+mats_col = [
     Material(Name='4130 Steel', E=205e9, y_stress=725e6, alpha=12.6e-6, rho=7850),
     Material(Name='8630 Steel', E=200e9, y_stress=550e6, alpha=11.7e-6, rho=7850),
     Material(Name='2014-T6 Aluminium', E=73.1e9, y_stress=414e6, alpha=24.4e-6, rho=2800),
@@ -38,7 +38,12 @@ mats_col=[
     Material(Name='2024-T4 Aluminium', E=73.1e9, y_stress=345e6, alpha=24.7e-6, rho=2780),
     Material(Name='AZ91C-T6 Magnesium', E=44.8e9, y_stress=145e6, alpha=26e-6, rho=1810),
     Material(Name='7075-T6 Aluminium', E=73.1e9, y_stress=503e6, alpha=23.6e-6, rho=2810),
+    Material(Name='2219-T851 Aluminium', E=73.1e9, y_stress=352e6, alpha=22.3e-6, rho=2840),
+    Material(Name='Al-Li 2195', E=74e9, y_stress=448e6, alpha=23e-6, rho=2710),
+    Material(Name='Ti-6Al-4V', E=119e9, y_stress=1200e6, alpha=9.1e-6, rho=4512),
+    Material(Name='8552 Carbon-Epoxy (Hexcel)', E=190e9, y_stress=3310e6, alpha=6e-6, rho=1300),
 ]
+
 
 mats_fast=[]
 
@@ -49,21 +54,20 @@ p_given=5e5
 #devo iterare per il caso in cui sommo pressione e senza
 
 mass_min=np.inf
-res_min=None
+t1_min=None
 mat_min=None
 p_min=None
 for mat_col in mats_col:
     for p in [0,p_given]:
-        t1=0.001
+        t1=0.0002
         def choose_p(func, p):
             modified=lambda x: func(x,p)
             return modified
         def MaxStress(t1,p):
-            t1*=0.001
             A=2*pi*R*t1
             I=pi*R**3*t1
             M_bend = mass(t1)*transterse_a*L/2
-            F_axial=mass(t1)*axial_a-p*pi*R**2
+            F_axial=mass(t1)*axial_a-p*pi*R**2+m_tanks*axial_a
             stress_hoop=p*R/t1
             for m,h in sandwich:
                 M_bend+=m*transterse_a*h
@@ -74,11 +78,10 @@ for mat_col in mats_col:
             
         
         def MaxStress_compr(t1,p):
-            t1*=0.001
             A=2*pi*R*t1
             I=pi*R**3*t1
             M_bend = mass(t1)*transterse_a*L/2
-            F_axial=mass(t1)*axial_a-p*pi*R**2
+            F_axial=mass(t1)*axial_a-p*pi*R**2+m_tanks*axial_a
             for m,h in sandwich:
                 M_bend+=m*transterse_a*h
                 F_axial+=m*axial_a
@@ -87,51 +90,39 @@ for mat_col in mats_col:
             return stress_z
 
         def ColumnBuckling(t1,p):
-            t1*=0.001 
             A = 2 * pi * R * t1
             I = pi * R**3 * t1
             Sigma_cb= pi**2 * mat_col.E * I/ (A * L**2)
             return MaxStress_compr(t1,p)/Sigma_cb# devo fare divisione con maximal stress nel grafico e devo controllare che questo non superi 1, penso che questo maximal stress derivi da loading 
         def ShellBuckling(t1,p):
-            t1*=0.001
             Q= p*R**2/(mat_col.E*t1**2)
             lamda = np.sqrt((12* L**4 * (1-mat_col.nu**2))/(pi**4 * R**2 * t1**2) )
             k = lamda + 12* L**4 * (1-mat_col.nu**2) / ( pi**4 * R**2 * t1**2 * lamda)
             Sigma_sb= (1.983 - 0.983*np.exp(-23.14*Q))*k*pi**2*mat_col.E*t1**2/(12*(1-mat_col.nu**2)*L**2)
             return MaxStress_compr(t1,p)/Sigma_sb
         def mass(t1):
-            t1*=0.001
-            return rho_col*(2*pi*R*t1*L)
+            return mat_col.rho*(2*pi*R*t1*L)
     
         while True:
-            t1+=0.001
-        constraints=[]
-        constraints.append(NonlinearConstraint(choose_p(ColumnBuckling,p), lb=0,ub=1))
-        constraints.append(NonlinearConstraint(choose_p(ShellBuckling,p), lb=0,ub=1))
-        constraints.append(NonlinearConstraint(choose_p(MaxStress,p), lb=0,ub=1))
-        x0=[1.2,3]
+            if  choose_p(ColumnBuckling,p)(t1)<=1 and choose_p(ShellBuckling,p)(t1)<=1 and choose_p(MaxStress,p)(t1)<=1:
+                break
+            t1+=0.0001
         
-        if res.fun<mass_min:
-            mass_min=res.fun
-            res_min=res
+        if mass(t1)<mass_min:
+            mass_min=mass(t1)
             mat_min=mat_col
             p_min=p
+            t1_min=t1
 
-x=res_min.x
+t1=t1_min
 mat_col=mat_min
 p=p_min
-print(f"{mat_col.Name}")
-print(res_min)
+print(f"{mat_col.Name}: {mass_min}")
+print(f't= {t1}')
 print(f'pressure: {p}')
-constraints=[]
-constraints.append(NonlinearConstraint(choose_p(ColumnBuckling,p), lb=0,ub=1))
-constraints.append(NonlinearConstraint(choose_p(ShellBuckling,p), lb=0,ub=1))
-constraints.append(NonlinearConstraint(choose_p(MaxStress,p), lb=0,ub=1))
-print(constraints[0].fun(x))
-print(constraints[1].fun(x))
-print(constraints[2].fun(x))
-print('\n\n')
-
+print(choose_p(ColumnBuckling,p)(t1))
+print(choose_p(ShellBuckling,p)(t1))
+print(choose_p(MaxStress,p)(t1))
 
   #output è total or cricical stress  
   #maximum stress che deriva da carichi effettivi quindi loads e local pressure (stress_max)
